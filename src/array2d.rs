@@ -54,4 +54,15 @@ mod test {
             assert_eq!(*value, i as i32);
         }
     }
+
+    #[test]
+    fn width_and_height() {
+        create_array2d!(3, 5);
+
+        let array = Array2D_3_5::default(0);
+
+        assert_eq!(array.width(), 3);
+        assert_eq!(array.height(), 5);
+    }
+
 }
