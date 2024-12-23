@@ -1,7 +1,8 @@
 [package]
-name = "utils_derive"
+name = "array2d_derive"
 version = "0.1.0"
 edition = "2021"
+authors = ["Tom Paßberg"]
 
 [lib]
 proc-macro = true

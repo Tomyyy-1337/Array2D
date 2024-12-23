@@ -21,11 +21,6 @@ impl Parse for Array2DInput {
 /// # Parameters
 /// - width: usize - The width of the 2D array.
 /// - height: usize - The height of the 2D array.
-/// # Example
-/// ``` rust
-/// use utils::create_array2d;
-/// create_array2d!(3, 3);
-/// ```	
 #[proc_macro]
 pub fn create_array2d(input: TokenStream) -> TokenStream {
     let Array2DInput { width, height } = parse_macro_input!(input as Array2DInput);
@@ -39,22 +34,26 @@ pub fn create_array2d(input: TokenStream) -> TokenStream {
         pub struct #struct_name<T> {
             pub data: [T; #len],
         }
-    
+        
         impl<T> #struct_name<T> {
+            /// Returns the width of the 2D array.
             pub fn width(&self) -> usize {
                 #width
             }
 
+            /// Returns the height of the 2D array.
             pub fn height(&self) -> usize {
                 #height
             }
 
+            /// Creates a new 2D array with the given data. 
             pub fn new(data: [T; #len]) -> Self {
                 #struct_name {
                     data,
                 }
             }
 
+            /// Creates a new 2D array with the given default value.
             pub fn default(value: T) -> Self
             where
                 T: Copy,

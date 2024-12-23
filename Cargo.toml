@@ -1,7 +1,8 @@
 [package]
-name = "utils"
+name = "array2d"
 version = "0.1.0"
 edition = "2021"
+authors = ["Tom Paßberg"]
 
 [dependencies]
-utils_derive = { path = "utils_derive" }
+array2d_derive = { path = "array2d_derive" }
