@@ -17,7 +17,6 @@ impl Parse for Array2DInput {
     }
 }
 
-
 /// Creates a 2D array struct with the given width and height on the stack using a single array.
 /// 
 /// # Parameters
@@ -71,10 +70,18 @@ pub fn create_array2d(input: TokenStream) -> TokenStream {
             /// 
             /// # Returns
             /// - Self - The new 2D array.
-            pub fn new(data: [T; #len]) -> Self {
+            pub fn from_raw(data: [T; #len]) -> Self {
                 #struct_name {
                     data,
                 }
+            }
+
+            /// Returns a reference to the raw data of the 2D array.
+            /// 
+            /// # Returns
+            /// - &[T; #len] - A reference to the raw data of the 2D array.
+            pub fn get_raw(&self) -> &[T; #len] {
+                &self.data
             }
 
             /// Creates a new 2D array with the given default value.
@@ -84,7 +91,7 @@ pub fn create_array2d(input: TokenStream) -> TokenStream {
             /// 
             /// # Returns
             /// - Self - The new 2D array.
-            pub fn default(default: T) -> Self
+            pub fn new(default: T) -> Self
             where
                 T: Copy,
             {
@@ -166,8 +173,23 @@ pub fn create_array2d(input: TokenStream) -> TokenStream {
             /// 
             /// # Returns
             /// - &T - A reference to the element at the given coordinates.
-            fn get_unchecked(&self, x: usize, y: usize) -> &T {
+            pub fn get_unchecked(&self, x: usize, y: usize) -> &T {
                 &self.data[y * #width + x]
+            }
+
+            /// Returns a mutable reference to the element at the given x and y coordinates without checking bounds.
+            /// 
+            /// # Safety
+            /// This method can panic or modify wrong cells if the coordinates are out of bounds.
+            /// 
+            /// # Parameters
+            /// - x: usize - The x coordinate.
+            /// - y: usize - The y coordinate.
+            /// 
+            /// # Returns
+            /// - &mut T - A mutable reference to the element at the given coordinates.
+            pub fn get_unchecked_mut(&mut self, x: usize, y: usize) -> &mut T {
+                &mut self.data[y * #width + x]
             }
 
             /// Iterates over the 2D array row by row.
@@ -231,6 +253,42 @@ pub fn create_array2d(input: TokenStream) -> TokenStream {
                     None
                 }
             }
+
+            /// Returns the row at the given y coordinate without checking bounds.
+            /// 
+            /// # Safety
+            /// This method can panic or return wrong rows if the coordinate is out of bounds.
+            /// 
+            /// # Parameters
+            /// - y: usize - The y coordinate.
+            /// 
+            /// # Returns
+            /// - &[T] - A reference to the row at the given y coordinate.
+            pub fn get_row_unchecked(&self, y: usize) -> &[T] {
+                &self.data[y * #width..(y + 1) * #width]
+            }
+            
+            /// Returns the row at the given y coordinate mutably without checking bounds.
+            /// 
+            /// # Safety
+            /// This method can panic or return wrong rows if the coordinate is out of bounds.
+            /// 
+            /// # Parameters
+            /// - y: usize - The y coordinate.
+            /// 
+            /// # Returns
+            /// - &mut [T] - A mutable reference to the row at the given y coordinate.
+            pub fn get_row_unchecked_mut(&mut self, y: usize) -> &mut [T] {
+                &mut self.data[y * #width..(y + 1) * #width]
+            }
+
+            /// Iterates over the 2D array column by column.
+            /// 
+            /// # Returns
+            /// - impl Iterator<Item = &[T]> - An iterator over the 2D array column by column.
+            pub fn rows(&self) -> impl Iterator<Item = &[T]> {
+                self.data.chunks_exact(#width)
+            }
         }
 
         impl <T> std::ops::Index<usize> for #struct_name<T> {
@@ -246,13 +304,35 @@ pub fn create_array2d(input: TokenStream) -> TokenStream {
             }
         }
 
+        impl <T> std::ops::Index<(usize, usize)> for #struct_name<T> {
+            type Output = T;
+            fn index(&self, (x, y): (usize, usize)) -> &Self::Output {
+                self.get_unchecked(x, y)
+            }
+        }
+
+        impl <T> std::ops::IndexMut<(usize, usize)> for #struct_name<T> {
+            fn index_mut(&mut self, (x, y): (usize, usize)) -> &mut Self::Output {
+                self.get_unchecked_mut(x, y)
+            }
+        }
+
+
+        impl <T> std::default::Default for #struct_name<T>
+        where
+            T: Default + Copy,
+        {
+            fn default() -> Self {
+                #struct_name::new(T::default())
+            }
+        }
+
         impl <T> std::fmt::Debug for #struct_name<T>
         where
             T: std::fmt::Debug,
         {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
                 let max_entry_width = self.data.iter().map(|entry| format!("{:?}", entry).len()).max().unwrap_or(0);
-
                 for y in 0..#height {
                     for x in 0..#width {
                         write!(f, "{:>width$} ", format!("{:?}", self.get(x, y).unwrap()), width = max_entry_width)?;
