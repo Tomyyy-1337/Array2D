@@ -3,7 +3,7 @@ Stores a Grid / 2D Array of fixed size using a single array.
 
 ## Features
 * Create and modify 2D arrays
-* Iterate over rows, colls or the entire data
+* Iterate over rows or the entire data
 * Overrloades for Indexing using []
 
 ``` rust
